@@ -4,6 +4,19 @@
   
     
     <entry>
+      <title>spark(1): RDD</title>
+      <link href="/2021/12/17/spark-1-RDD/"/>
+      <url>/2021/12/17/spark-1-RDD/</url>
+      
+        <content type="html"><![CDATA[<h1 id="spark-基础"><a href="#spark-基础" class="headerlink" title="spark 基础"></a>spark 基础</h1><h2 id="什么是RDD？"><a href="#什么是RDD？" class="headerlink" title="什么是RDD？"></a>什么是RDD？</h2><p>为什么非要从RDD开始呢？虽然RDD API使用频率越来越低，但是DataFrame跟DataSet API最终都会在spark内部转化成RDD的分布式计算，如果想对Spark计算有一个知其所以然的把控，就要对RDD有足够的了解.</p><p><img src="file:///Users/dingliang/Library/Application%20Support/marktext/images/2021-12-17-15-41-08-image.png"></p>]]></content>
+      
+      
+      
+    </entry>
+    
+    
+    
+    <entry>
       <title>java并发(6): 最优线程数量</title>
       <link href="/2021/12/13/java%E5%B9%B6%E5%8F%91-%E5%88%9B%E5%BB%BA%E5%90%88%E9%80%82%E7%9A%84%E7%BA%BF%E7%A8%8B%E6%95%B0/"/>
       <url>/2021/12/13/java%E5%B9%B6%E5%8F%91-%E5%88%9B%E5%BB%BA%E5%90%88%E9%80%82%E7%9A%84%E7%BA%BF%E7%A8%8B%E6%95%B0/</url>
