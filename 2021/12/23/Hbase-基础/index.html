@@ -1,0 +1,243 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Hbase 基础 | din1vin's Blog</title><meta name="keywords" content="Hbase"><meta name="author" content="din1vin"><meta name="copyright" content="din1vin"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="Hbase是什么非常热门的一款KV数据库系统,高可靠,易扩展,高性能,社区支持. 发展史可以参考xia’mian 的版本图:  基本概念: table: 表,一个表可以包含多行  row: 行,一行包含唯一的rowkey和多个列簇,列可动态扩展,所有row按照rowkey的字段序从小到大排列.  column: 列，与关系型数据库中的列不同，HBase中的column由column family（">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Hbase 基础">
+<meta property="og:url" content="http://example.com/2021/12/23/Hbase-%E5%9F%BA%E7%A1%80/index.html">
+<meta property="og:site_name" content="din1vin&#39;s Blog">
+<meta property="og:description" content="Hbase是什么非常热门的一款KV数据库系统,高可靠,易扩展,高性能,社区支持. 发展史可以参考xia’mian 的版本图:  基本概念: table: 表,一个表可以包含多行  row: 行,一行包含唯一的rowkey和多个列簇,列可动态扩展,所有row按照rowkey的字段序从小到大排列.  column: 列，与关系型数据库中的列不同，HBase中的column由column family（">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://i.loli.net/2020/05/01/gkihqEjXxJ5UZ1C.jpg">
+<meta property="article:published_time" content="2021-12-23T02:20:54.000Z">
+<meta property="article:modified_time" content="2021-12-23T08:31:32.772Z">
+<meta property="article:author" content="din1vin">
+<meta property="article:tag" content="Hbase">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://i.loli.net/2020/05/01/gkihqEjXxJ5UZ1C.jpg"><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="http://example.com/2021/12/23/Hbase-%E5%9F%BA%E7%A1%80/"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = { 
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"search.xml","languages":{"hits_empty":"找不到您查询的内容：${query}"}},
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  date_suffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  source: {
+    jQuery: 'https://cdn.jsdelivr.net/npm/jquery@latest/dist/jquery.min.js',
+    justifiedGallery: {
+      js: 'https://cdn.jsdelivr.net/npm/justifiedGallery/dist/js/jquery.justifiedGallery.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/justifiedGallery/dist/css/justifiedGallery.min.css'
+    },
+    fancybox: {
+      js: 'https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@latest/dist/jquery.fancybox.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@latest/dist/jquery.fancybox.min.css'
+    }
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isanchor: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'Hbase 基础',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2021-12-23 16:31:32'
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(win=>{
+    win.saveToLocal = {
+      set: function setWithExpiry(key, value, ttl) {
+        if (ttl === 0) return
+        const now = new Date()
+        const expiryDay = ttl * 86400000
+        const item = {
+          value: value,
+          expiry: now.getTime() + expiryDay,
+        }
+        localStorage.setItem(key, JSON.stringify(item))
+      },
+
+      get: function getWithExpiry(key) {
+        const itemStr = localStorage.getItem(key)
+
+        if (!itemStr) {
+          return undefined
+        }
+        const item = JSON.parse(itemStr)
+        const now = new Date()
+
+        if (now.getTime() > item.expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return item.value
+      }
+    }
+  
+    win.getScript = url => new Promise((resolve, reject) => {
+      const script = document.createElement('script')
+      script.src = url
+      script.async = true
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    })
+  
+      win.activateDarkMode = function () {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = function () {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+          if (t === 'dark') activateDarkMode()
+          else if (t === 'light') activateLightMode()
+        
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+    const detectApple = () => {
+      if (GLOBAL_CONFIG_SITE.isHome && /iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+    })(window)</script><meta name="generator" content="Hexo 5.4.0"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="http://inews.gtimg.com/newsapp_bt/0/13810887076/1000" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data"><div class="data-item is-center"><div class="data-item-link"><a href="/archives/"><div class="headline">文章</div><div class="length-num">16</div></a></div></div><div class="data-item is-center"><div class="data-item-link"><a href="/tags/"><div class="headline">标签</div><div class="length-num">8</div></a></div></div><div class="data-item is-center"><div class="data-item-link"><a href="/categories/"><div class="headline">分类</div><div class="length-num">9</div></a></div></div></div><hr/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><i class="fa-fw fas fa-list"></i><span> 文章</span><i class="fas fa-chevron-down expand"></i></a><ul class="menus_item_child"><li><a class="site-page child" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></li><li><a class="site-page child" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></li><li><a class="site-page child" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="not-top-img" id="page-header"><nav id="nav"><span id="blog_name"><a id="site-name" href="/">din1vin's Blog</a></span><div id="menus"><div id="search-button"><a class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><i class="fa-fw fas fa-list"></i><span> 文章</span><i class="fas fa-chevron-down expand"></i></a><ul class="menus_item_child"><li><a class="site-page child" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></li><li><a class="site-page child" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></li><li><a class="site-page child" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><div id="toggle-menu"><a class="site-page"><i class="fas fa-bars fa-fw"></i></a></div></div></nav></header><main class="layout" id="content-inner"><div id="post"><div id="post-info"><h1 class="post-title">Hbase 基础</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2021-12-23T02:20:54.000Z" title="发表于 2021-12-23 10:20:54">2021-12-23</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2021-12-23T08:31:32.772Z" title="更新于 2021-12-23 16:31:32">2021-12-23</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/hadoop/">hadoop</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/hadoop/Hbase/">Hbase</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">字数总计:</span><span class="word-count">2.1k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>6分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="Hbase 基础"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"></span></span></div></div></div><article class="post-content" id="article-container"><h2 id="Hbase是什么"><a href="#Hbase是什么" class="headerlink" title="Hbase是什么"></a>Hbase是什么</h2><p>非常热门的一款KV数据库系统,<strong>高可靠,易扩展,高性能,社区支持.</strong></p>
+<p>发展史可以参考xia’mian 的版本图:</p>
+<p><img src="https://s2.loli.net/2021/12/23/YzLfnhrIUZJaykF.png" alt="image-20211223153057998"></p>
+<h3 id="基本概念"><a href="#基本概念" class="headerlink" title="基本概念:"></a>基本概念:</h3><ul>
+<li><p>table: 表,一个表可以包含多行</p>
+</li>
+<li><p>row: 行,一行包含唯一的rowkey和多个列簇,列可动态扩展,所有row按照rowkey的字段序从小到大排列.</p>
+</li>
+<li><p>column: 列，与关系型数据库中的列不同，HBase中的column由column family（列簇）以及qualifier（列名）两部分组成，两者中间使用”:”相连。比如contents:html，其中contents为列簇，html为列簇下具体的一列。column family在表创建的时候需要指定，用户不能随意增减。一个column family下可以设置任意多个qualif ier，因此可以理解为HBase中的列可以动态增加，理论上甚至可以扩展到上百万列。</p>
+</li>
+<li><p>timestamp: 时间戳，每个cell在写入HBase的时候都会默认分配一个时间戳作为该cell的版本，当然，用户也可以在写入的时候自带时间戳。HBase支持多版本特性，即同一rowkey、column下可以有多个value存在，这些value使用timestamp作为版本号，版本越大，表示数据越新。</p>
+</li>
+<li><p>cell: 单元格，由五元组（row, column, timestamp, type, value）组成的结构，其中type表示Put/Delete这样的操作类型，timestamp代表这个cell的版本。这个结构在数据库中实际是以KV结构存储的，其中（row, column, timestamp, type）是K,对应KV结构的V。</p>
+</li>
+</ul>
+<blockquote>
+<p>Hbase的存储如下</p>
+<p>{(rowkey,column family, qualifier, type, tms) -&gt; “value”}</p>
+</blockquote>
+<h3 id="存储结构特性"><a href="#存储结构特性" class="headerlink" title="存储结构特性"></a>存储结构特性</h3><p>基于Hbase的存储形式,Hbase有以下特性,</p>
+<ul>
+<li><p>多维: Hbase跟普通map不同,他的key是一个多维的复合结构.</p>
+</li>
+<li><p>稀疏: 无论是行存还是列存,在某个属性不存在的时候会填充null,在扩展的时候会造成大量空间浪费.</p>
+</li>
+<li><p>排序: 构成HBase的KV在同一个文件中都是有序的，但规则并不是仅仅按照rowkey排序，而是按照KV中的key进行排序——先比较rowkey，rowkey小的排在前面；如果rowkey相同，再比较column，即column family:qualifier，column小的排在前面；如果column还相同，再比较时间戳timestamp，即版本信息，timestamp大的排在前面</p>
+</li>
+<li><p>更新: 基于map的特性,新的值会自动覆盖旧的值,天然支持更新.</p>
+</li>
+<li><p>分布式: Hbase的所有map分布式存储.</p>
+</li>
+</ul>
+<h3 id="角色分工"><a href="#角色分工" class="headerlink" title="角色分工"></a>角色分工</h3><p>Hbase的架构如下:</p>
+<p>​    </p>
+<p><img src="https://s2.loli.net/2021/12/23/n6W1BVPtpDxUaMA.png" alt="image-20211223154806093"></p>
+<h4 id="Hbase客户端"><a href="#Hbase客户端" class="headerlink" title="Hbase客户端"></a>Hbase客户端</h4><p>提供了hbase-shell接口,原生的JavaAPI, Thrift/REST API,以及MapReduce接口.HBase客户端支持所有常见的DML操作以及DDL操作，即数据的增删改查和表的日常维护等。其中Thrift/REST API主要用于支持非Java的上层业务需求，MapReduce接口主要用于批量数据导入以及批量数据读取。</p>
+<p>HBase客户端访问数据行之前，首先需要通过元数据表定位目标数据所在RegionServer，之后才会发送请求到该RegionServer。同时这些元数据会被缓存在客户端本地，以方便之后的请求访问。如果集群RegionServer发生宕机或者执行了负载均衡等，从而导致数据分片发生迁移，客户端需要重新请求最新的元数据并缓存在本地。</p>
+<h4 id="Zookeeper"><a href="#Zookeeper" class="headerlink" title="Zookeeper"></a>Zookeeper</h4><p>分布式协调管理组件,在分布式系统中很常见,在其他大数据组件如Kafka等都有用到,在Hbase中的作用主要是:</p>
+<ul>
+<li><p>实现Master高可用: 检测Master的状态,宕机时选举新的Master</p>
+</li>
+<li><p>管理系统核心元数据: 比如，管理当前系统中正常工作的RegionServer集合，保存系统元数据表hbase:meta所在的RegionServer地址等</p>
+</li>
+<li><p>参与RegionServer宕机恢复: 比如，管理当前系统中正常工作的RegionServer集合，保存系统元数据表hbase:meta所在的RegionServer地址等</p>
+</li>
+<li><p>实现分布式表锁：HBase中对一张表进行各种管理操作（比如alter操作）需要先加表锁，防止其他用户对同一张表进行管理操作，造成表状态不一致。和其他RDBMS表不同，HBase中的表通常都是分布式存储，ZooKeeper可以通过特定机制实现分布式表锁。</p>
+</li>
+</ul>
+<h4 id="Master"><a href="#Master" class="headerlink" title="Master"></a>Master</h4><p>负责Hbase的各种管理工作:</p>
+<ul>
+<li>处理用户请求如建表,修改表,权限操作,切分表合并数据分片以及Compaction等</li>
+<li>管理RegionServer,包括负载均衡和宕机恢复以及Region迁移</li>
+<li>清理过期日志和文件. 周期性检查和清理已过期和被删除的日志文件.</li>
+</ul>
+<h4 id="RegionServer"><a href="#RegionServer" class="headerlink" title="RegionServer"></a>RegionServer</h4><p>主要是相应IO请求.主要由<code>WAL(HLog)</code>,<code>BlockCache</code>和多个<code>Region</code>组成</p>
+<ul>
+<li><p>WAL(HLog):  保障异步写入的中间文件</p>
+<blockquote>
+<p> 1.实现高可靠性: HBase数据随机写入时，并非直接写入HFile数据文件，而是先写入缓存，再异步刷新落盘。为了防止缓存数据丢失，数据写入缓存之前需要首先顺序写入HLog，这样，即使缓存数据丢失，仍然可以通过HLog日志恢复</p>
+<ol start="2">
+<li>用于Hbase集群之间的主从复制: 通过回放主集群推送过来的HLog日志实现主从复制</li>
+</ol>
+</blockquote>
+</li>
+<li><p>BlockCache: 读缓存块</p>
+<p> HBase系统中的读缓存。客户端从磁盘读取数据之后通常会将数据缓存到系统内存中，后续访问同一行数据可以直接从内存中获取而不需要访问磁盘,减少IO次数. BlockCache是一系列Block块,默认每个块64K,是物理相邻的多个KV数据组. 当前BlockCache主要有两种实现——LRUBlockCache和BucketCache，前者实现相对简单，而后者在GC优化方面有明显的提升。</p>
+</li>
+<li><p>Region: 数据分片,数据表的一个分片，当数据表大小超过一定阈值就会“水平切分”，分裂为两个Region。Region是集群负载均衡的基本单位。通常一张表的Region会分布在整个集群的多台RegionServer上，一个RegionServer上会管理多个Region，当然，这些Region一般来自不同的数据表。</p>
+</li>
+</ul>
+<p>一个Region由一个或者多个Store构成，Store的个数取决于表中列簇（column family）的个数，多少个列簇就有多少个Store。HBase中，每个列簇的数据都集中存放在一起形成一个存储单元Store，因此建议将具有相同IO特性的数据设置在同一个列簇中。每个Store由一个MemStore和一个或多个HFile组成。MemStore称为写缓存，用户写入数据时首先会写到MemStore，当MemStore写满之后（缓存数据超过阈值，默认128M）系统会异步地将数据flush成一个HFile文件。显然，随着数据不断写入，HFile文件会越来越多，当HFile文件数超过一定阈值之后系统将会执行Compact操作，将这些小文件通过一定策略合并成一个或多个大文件。</p>
+<h3 id="HDFS"><a href="#HDFS" class="headerlink" title="HDFS"></a>HDFS</h3><p>Hbase的底层存储,包括用户数据文件,Hlog日志等都会落盘HDFS.</p>
+<h3 id="系统特性"><a href="#系统特性" class="headerlink" title="系统特性"></a>系统特性</h3><h4 id="优点-pick-point"><a href="#优点-pick-point" class="headerlink" title="优点/pick point"></a>优点/pick point</h4><ul>
+<li><p>容量巨大: 千亿行百万列,数据量可以到TB甚至PB.</p>
+</li>
+<li><p>高可扩展: 存储不够可以增加DataNode来增加HDFS容量,读写服务不佳可以增加RegionServer增加计算能力.</p>
+</li>
+<li><p>稀疏性: 允许大量列值为空,而且null不占空间,对加列场景尤其适合.</p>
+</li>
+<li><p>高性能: 擅长OTLP场景,读写快.尤其是单点取值.</p>
+</li>
+<li><p>支持历史版本: 同一个key可以根据tms保存多个版本.</p>
+</li>
+<li><p>支持过期: 与很多KV数据库一样,Hbase也支持在写入时指定TTL,无需写程序手动删除,</p>
+</li>
+<li><p>Hadoop原生支持.意味着可以绕过hbase直接操作hfile,高效操作和导入导出.</p>
+</li>
+</ul>
+<h4 id="缺点-ban-point"><a href="#缺点-ban-point" class="headerlink" title="缺点/ban point"></a>缺点/ban point</h4><ul>
+<li>不支持复杂的聚合运算: join和group by都不支持,需要搭配其他组件,入spark或者Phoenix.</li>
+<li>不支持二级索引: 本身没有二级索引功能,不过可以搭配Phoenix提供二级索引</li>
+<li>不支持全局跨行事务,只支持单行事务,Phoenix同样也能实现全局事务模型</li>
+</ul>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta">文章作者: </span><span class="post-copyright-info"><a href="mailto:undefined">din1vin</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta">文章链接: </span><span class="post-copyright-info"><a href="http://example.com/2021/12/23/Hbase-%E5%9F%BA%E7%A1%80/">http://example.com/2021/12/23/Hbase-%E5%9F%BA%E7%A1%80/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta">版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="http://example.com" target="_blank">din1vin's Blog</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/Hbase/">Hbase</a></div><div class="post_share"><div class="social-share" data-image="https://i.loli.net/2020/05/01/gkihqEjXxJ5UZ1C.jpg" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/social-share.js/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/social-share.js/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><div class="next-post pull-full"><a href="/2021/12/21/hive-UDF%E5%87%BD%E6%95%B0/"><img class="next-cover" src="https://i.loli.net/2020/05/01/gkihqEjXxJ5UZ1C.jpg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">hive(2): UDAF 和 UDTF</div></div></a></div></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="http://inews.gtimg.com/newsapp_bt/0/13810887076/1000" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">din1vin</div><div class="author-info__description">bug探索工程师,低并发研究员</div></div><div class="card-info-data"><div class="card-info-data-item is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">16</div></a></div><div class="card-info-data-item is-center"><a href="/tags/"><div class="headline">标签</div><div class="length-num">8</div></a></div><div class="card-info-data-item is-center"><a href="/categories/"><div class="headline">分类</div><div class="length-num">9</div></a></div></div><a class="button--animated" id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/din1vin"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons is-center"><a class="social-icon" href="https://github.com/din1vin" target="_blank" title="Github"><i class="fab fa-github"></i></a><a class="social-icon" href="/dinl_vin@163.com" target="_blank" title="Email"><i class="fas fa-envelope"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn card-announcement-animation"></i><span>公告</span></div><div class="announcement_content">再好的文档也不会帮你敲一行代码!</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#Hbase%E6%98%AF%E4%BB%80%E4%B9%88"><span class="toc-number">1.</span> <span class="toc-text">Hbase是什么</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%9F%BA%E6%9C%AC%E6%A6%82%E5%BF%B5"><span class="toc-number">1.1.</span> <span class="toc-text">基本概念:</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AD%98%E5%82%A8%E7%BB%93%E6%9E%84%E7%89%B9%E6%80%A7"><span class="toc-number">1.2.</span> <span class="toc-text">存储结构特性</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%A7%92%E8%89%B2%E5%88%86%E5%B7%A5"><span class="toc-number">1.3.</span> <span class="toc-text">角色分工</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#Hbase%E5%AE%A2%E6%88%B7%E7%AB%AF"><span class="toc-number">1.3.1.</span> <span class="toc-text">Hbase客户端</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Zookeeper"><span class="toc-number">1.3.2.</span> <span class="toc-text">Zookeeper</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Master"><span class="toc-number">1.3.3.</span> <span class="toc-text">Master</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#RegionServer"><span class="toc-number">1.3.4.</span> <span class="toc-text">RegionServer</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#HDFS"><span class="toc-number">1.4.</span> <span class="toc-text">HDFS</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%B3%BB%E7%BB%9F%E7%89%B9%E6%80%A7"><span class="toc-number">1.5.</span> <span class="toc-text">系统特性</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%BC%98%E7%82%B9-pick-point"><span class="toc-number">1.5.1.</span> <span class="toc-text">优点&#x2F;pick point</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E7%BC%BA%E7%82%B9-ban-point"><span class="toc-number">1.5.2.</span> <span class="toc-text">缺点&#x2F;ban point</span></a></li></ol></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2021/12/23/Hbase-%E5%9F%BA%E7%A1%80/" title="Hbase 基础">Hbase 基础</a><time datetime="2021-12-23T02:20:54.000Z" title="发表于 2021-12-23 10:20:54">2021-12-23</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2021/12/21/hive-UDF%E5%87%BD%E6%95%B0/" title="hive(2): UDAF 和 UDTF">hive(2): UDAF 和 UDTF</a><time datetime="2021-12-21T09:47:22.000Z" title="发表于 2021-12-21 17:47:22">2021-12-21</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2021/12/20/java%E5%B9%B6%E5%8F%91-JUC%E7%9A%84%E7%AE%A1%E7%A8%8B/" title="java并发(7):JUC中的管程">java并发(7):JUC中的管程</a><time datetime="2021-12-20T06:57:50.000Z" title="发表于 2021-12-20 14:57:50">2021-12-20</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2021/12/20/spark-1-spark%E5%9F%BA%E7%A1%80/" title="spark 基础介绍">spark 基础介绍</a><time datetime="2021-12-20T04:35:08.000Z" title="发表于 2021-12-20 12:35:08">2021-12-20</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2021/12/13/java%E5%B9%B6%E5%8F%91-%E5%88%9B%E5%BB%BA%E5%90%88%E9%80%82%E7%9A%84%E7%BA%BF%E7%A8%8B%E6%95%B0/" title="java并发(6): 最优线程数量">java并发(6): 最优线程数量</a><time datetime="2021-12-13T10:20:54.000Z" title="发表于 2021-12-13 18:20:54">2021-12-13</time></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2020 - 2021 By din1vin</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><i class="fas fa-arrow-up"></i></button></div></div><div id="local-search"><div class="search-dialog"><div class="search-dialog__title" id="local-search-title">本地搜索</div><div id="local-input-panel"><div id="local-search-input"><div class="local-search-box"><input class="local-search-box--input" placeholder="搜索文章" type="text"/></div></div></div><hr/><div id="local-search-results"></div><span class="search-close-button"><i class="fas fa-times"></i></span></div><div id="search-mask"></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="/js/search/local-search.js"></script><div class="js-pjax"></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>
