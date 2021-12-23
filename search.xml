@@ -13,7 +13,7 @@
       
       <categories>
           
-          <category> hadoop </category>
+          <category> Hadoop </category>
           
           <category> Hbase </category>
           
@@ -31,7 +31,7 @@
     
     
     <entry>
-      <title>hive(2): UDAF 和 UDTF</title>
+      <title>Hive(2): UDAF 和 UDTF</title>
       <link href="/2021/12/21/hive-UDF%E5%87%BD%E6%95%B0/"/>
       <url>/2021/12/21/hive-UDF%E5%87%BD%E6%95%B0/</url>
       
@@ -40,14 +40,18 @@
       
       <categories>
           
-          <category> hive </category>
+          <category> Hadoop </category>
+          
+          <category> Hive </category>
           
       </categories>
       
       
         <tags>
             
-            <tag> hive </tag>
+            <tag> Hadoop </tag>
+            
+            <tag> Hive </tag>
             
         </tags>
       
@@ -139,7 +143,7 @@
     
     
     <entry>
-      <title>hive(1): 基础函数</title>
+      <title>Hive(1): 基础函数</title>
       <link href="/2021/12/13/hive%E5%B8%B8%E7%94%A8%E5%87%BD%E6%95%B0/"/>
       <url>/2021/12/13/hive%E5%B8%B8%E7%94%A8%E5%87%BD%E6%95%B0/</url>
       
@@ -148,18 +152,18 @@
       
       <categories>
           
-          <category> hadoop </category>
+          <category> Hadoop </category>
           
-          <category> hive </category>
+          <category> Hive </category>
           
       </categories>
       
       
         <tags>
             
-            <tag> hadoop </tag>
+            <tag> Hadoop </tag>
             
-            <tag> hive </tag>
+            <tag> Hive </tag>
             
         </tags>
       
