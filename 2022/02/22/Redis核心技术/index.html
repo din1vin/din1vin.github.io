@@ -1,0 +1,303 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Redis核心技术 | din1vin's Blog</title><meta name="keywords" content="Redis"><meta name="author" content="din1vin"><meta name="copyright" content="din1vin"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="1. 数据结构提及Redis,脑海中的第一反应就是”快”,那么Redis有多快呢?  通常Redis接收到一个键值对的操作后,会以微秒级别 的速度找到数据,并快速完成操作. Redis都支持哪些数据结构呢? 简单动态字符串: String  双向链表,整形数组: List  压缩列表: List+Hash + SortedList  哈希表: Hash + Set  跳表: Sorted Set">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Redis核心技术">
+<meta property="og:url" content="http://example.com/2022/02/22/Redis%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF/index.html">
+<meta property="og:site_name" content="din1vin&#39;s Blog">
+<meta property="og:description" content="1. 数据结构提及Redis,脑海中的第一反应就是”快”,那么Redis有多快呢?  通常Redis接收到一个键值对的操作后,会以微秒级别 的速度找到数据,并快速完成操作. Redis都支持哪些数据结构呢? 简单动态字符串: String  双向链表,整形数组: List  压缩列表: List+Hash + SortedList  哈希表: Hash + Set  跳表: Sorted Set">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://i.loli.net/2020/05/01/gkihqEjXxJ5UZ1C.jpg">
+<meta property="article:published_time" content="2022-02-22T01:40:32.000Z">
+<meta property="article:modified_time" content="2022-02-22T09:59:23.818Z">
+<meta property="article:author" content="din1vin">
+<meta property="article:tag" content="Redis">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://i.loli.net/2020/05/01/gkihqEjXxJ5UZ1C.jpg"><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="http://example.com/2022/02/22/Redis%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF/"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = { 
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"search.xml","languages":{"hits_empty":"找不到您查询的内容：${query}"}},
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  date_suffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  source: {
+    jQuery: 'https://cdn.jsdelivr.net/npm/jquery@latest/dist/jquery.min.js',
+    justifiedGallery: {
+      js: 'https://cdn.jsdelivr.net/npm/justifiedGallery/dist/js/jquery.justifiedGallery.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/justifiedGallery/dist/css/justifiedGallery.min.css'
+    },
+    fancybox: {
+      js: 'https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@latest/dist/jquery.fancybox.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@latest/dist/jquery.fancybox.min.css'
+    }
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isanchor: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'Redis核心技术',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2022-02-22 17:59:23'
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(win=>{
+    win.saveToLocal = {
+      set: function setWithExpiry(key, value, ttl) {
+        if (ttl === 0) return
+        const now = new Date()
+        const expiryDay = ttl * 86400000
+        const item = {
+          value: value,
+          expiry: now.getTime() + expiryDay,
+        }
+        localStorage.setItem(key, JSON.stringify(item))
+      },
+
+      get: function getWithExpiry(key) {
+        const itemStr = localStorage.getItem(key)
+
+        if (!itemStr) {
+          return undefined
+        }
+        const item = JSON.parse(itemStr)
+        const now = new Date()
+
+        if (now.getTime() > item.expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return item.value
+      }
+    }
+  
+    win.getScript = url => new Promise((resolve, reject) => {
+      const script = document.createElement('script')
+      script.src = url
+      script.async = true
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    })
+  
+      win.activateDarkMode = function () {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = function () {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+          if (t === 'dark') activateDarkMode()
+          else if (t === 'light') activateLightMode()
+        
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+    const detectApple = () => {
+      if (GLOBAL_CONFIG_SITE.isHome && /iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+    })(window)</script><meta name="generator" content="Hexo 5.4.0"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="http://inews.gtimg.com/newsapp_bt/0/13810887076/1000" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data"><div class="data-item is-center"><div class="data-item-link"><a href="/archives/"><div class="headline">文章</div><div class="length-num">20</div></a></div></div><div class="data-item is-center"><div class="data-item-link"><a href="/tags/"><div class="headline">标签</div><div class="length-num">12</div></a></div></div><div class="data-item is-center"><div class="data-item-link"><a href="/categories/"><div class="headline">分类</div><div class="length-num">11</div></a></div></div></div><hr/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><i class="fa-fw fas fa-list"></i><span> 文章</span><i class="fas fa-chevron-down expand"></i></a><ul class="menus_item_child"><li><a class="site-page child" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></li><li><a class="site-page child" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></li><li><a class="site-page child" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="not-top-img" id="page-header"><nav id="nav"><span id="blog_name"><a id="site-name" href="/">din1vin's Blog</a></span><div id="menus"><div id="search-button"><a class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><i class="fa-fw fas fa-list"></i><span> 文章</span><i class="fas fa-chevron-down expand"></i></a><ul class="menus_item_child"><li><a class="site-page child" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></li><li><a class="site-page child" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></li><li><a class="site-page child" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><div id="toggle-menu"><a class="site-page"><i class="fas fa-bars fa-fw"></i></a></div></div></nav></header><main class="layout" id="content-inner"><div id="post"><div id="post-info"><h1 class="post-title">Redis核心技术</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2022-02-22T01:40:32.000Z" title="发表于 2022-02-22 09:40:32">2022-02-22</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2022-02-22T09:59:23.818Z" title="更新于 2022-02-22 17:59:23">2022-02-22</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/Redis/">Redis</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">字数总计:</span><span class="word-count">3.1k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>9分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="Redis核心技术"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"></span></span></div></div></div><article class="post-content" id="article-container"><h2 id="1-数据结构"><a href="#1-数据结构" class="headerlink" title="1. 数据结构"></a>1. 数据结构</h2><p>提及Redis,脑海中的第一反应就是”快”,那么Redis有多快呢? </p>
+<p>通常Redis接收到一个键值对的操作后,会以<u>微秒级别</u> 的速度找到数据,并快速完成操作.</p>
+<h4 id="Redis都支持哪些数据结构呢"><a href="#Redis都支持哪些数据结构呢" class="headerlink" title="Redis都支持哪些数据结构呢?"></a>Redis都支持哪些数据结构呢?</h4><ul>
+<li><p>简单动态字符串: String</p>
+</li>
+<li><p>双向链表,整形数组: List</p>
+</li>
+<li><p>压缩列表: List+Hash + SortedList</p>
+</li>
+<li><p>哈希表: Hash + Set</p>
+</li>
+<li><p>跳表: Sorted Set</p>
+</li>
+<li><p>集合: Set </p>
+</li>
+</ul>
+<h4 id="Redis如何保存数据呢"><a href="#Redis如何保存数据呢" class="headerlink" title="Redis如何保存数据呢?"></a>Redis如何保存数据呢?</h4><p>Redis通过对key进行hash,保存了一个全局哈希表,你可以理解成Map&lt;String,Entry&gt;,String是key的hashcode,Entry是一个二元封装(*key,<br>*value),又被称为哈希桶,保存着key和value的指针.</p>
+<p>哈希表按key找值的算法复杂度是O(1),只要对键进行Hash操作,可以立即取到对应的值,所以Redis取值操作很快.</p>
+<h4 id="为什么哈希表的操作会变慢"><a href="#为什么哈希表的操作会变慢" class="headerlink" title="为什么哈希表的操作会变慢"></a>为什么哈希表的操作会变慢</h4><p>由于全局哈希表的大小是有限的,但是key是无限增长的,所以就会有<u>哈希冲突</u>的存在.哈希冲突时,不同的key的hashcode相同,全局哈希表一个key对应的多个entry以链表形式保存,此时哈希桶中的每个entry都是一个三元封装(*key, *value, *next),除了存放本身的键值指针以外,还存放着指向下一个entry的next指针.形成一个链表,又叫哈希冲突链.</p>
+<p>这个时候按照key查找值的操作变成了(用java伪代码表达一下方便理解,redis本身是c语言写的)</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">String keyHash = hash(key) <span class="comment">// 计算key的hash值</span></span><br><span class="line">entry = globalHash.get(keyHash)  <span class="comment">//按照key查找哈希桶</span></span><br><span class="line"><span class="keyword">while</span> entry.key != key:</span><br><span class="line">entry = entry.next</span><br><span class="line"><span class="keyword">return</span> entry.value</span><br></pre></td></tr></table></figure>
+
+<p>可以看到这里的取值复杂程度跟哈希冲突链的长度有关.哈希冲突越大,操作越慢.</p>
+<p>这个时候Redis会怎么解决呢? Rehash.</p>
+<p>顾名思义,Rehash就是对现有的全局哈希表扩容,假设原来的全局hash表容量是一万,hash算法为按key取模,将hash表的容量扩大到两万,就能将每个哈希桶里的哈希冲突链缩短到一半.说明Rehash是一个行之有效的操作:</p>
+<p>如何落地Rehash呢?</p>
+<p>redis采用了类似CopyOnWrite的设计,默认采用两个全局哈希表,hashTable1和hashTable2,一开始数据量较少的时候只用hashTable1,hashTable2没有被分配空间,随着数据逐渐增多,Redis开始进行Rehash操作,分为以下3步:</p>
+<ol>
+<li>给hashTable2分配空间,假设是hashTable1的两倍</li>
+<li>将HashTable1的数据重新映射(暂且称为reIndex),存入hashTable2;</li>
+<li>释放hashTable1的空间</li>
+</ol>
+<p>至此,就可以切换到另一个全局hash表,原来hashTable1的空间轮换休息,作下一次扩容备用.</p>
+<p>但是上述做法有一个问题就是第2步涉及大量的reIndex和copy,假如这个rehash的时机选择跟ArrayList一样在到达某个阈值的瞬间进行扩容,这个操作的等待时间就会被加上rehash的时间,显然对于到达阈值这次的操作来说,用户体验太差.</p>
+<p>为了避免这个问题,Redis的解决方案是渐进式rehash.</p>
+<p>所谓渐进式rehash,就是一旦为hashTable2分配空间后,每次对hashTable1的取值,只对该值指向的Entry进行rehash.</p>
+<p>这样就巧妙的避免了一次性大量拷贝的开销,将一次替换分摊到了每个请求上.除了在查询时根据key搬运,redis本身也有一个定时rehash.</p>
+<h4 id="各种操作的平均时间复杂度"><a href="#各种操作的平均时间复杂度" class="headerlink" title="各种操作的平均时间复杂度"></a>各种操作的平均时间复杂度</h4><table>
+<thead>
+<tr>
+<th>名称</th>
+<th>查询</th>
+<th>下标查找</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>哈希表</td>
+<td>O(1)</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td>跳表</td>
+<td>O(logN)</td>
+<td>-</td>
+</tr>
+<tr>
+<td>双向链表</td>
+<td>O(N)</td>
+<td>O(N)</td>
+</tr>
+<tr>
+<td>压缩列表</td>
+<td>O(N)</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td>集合</td>
+<td>O(N)</td>
+<td>O(1)</td>
+</tr>
+</tbody></table>
+<h2 id="2-IO模型"><a href="#2-IO模型" class="headerlink" title="2. IO模型"></a>2. IO模型</h2><p>redis中存在大量全局变量,如全局哈希表等,多线程使用共享资源的并发控制难以实现,而且多线程操作对于共享变量很难设计一个粒度合适的锁,这种情况即使使用多线程,难免大部分情况下有很多线程处于等待状态,多线程并发的开发成本和维护成本也要明显高于单线程,为了避免这些情况.Redis直接采用了单线程.</p>
+<p>当然这里所说的单线程,仅仅指的是与客户端交互的时候,网络IO和数据读写是由一个线程完成的,而数据清理,主从复制都用了其他线程.</p>
+<p>Redis的IO模型借用了Unix内核的多路复用技术,多个套接字借用epoll机制,让CPU来监听,不同事件触发不同回调机制,这些回调机制就是把相应事件放到一个待处理的队列中,再由Redis单核不断处理队列中的任务.因为Redis一直在对队列事件进行处理,所以能及时响应客户端请求.</p>
+<p>多路复用机制,即使在不同操作系统上也有不同的实现,在Linux中是select和epoll实现,基于FreeBSD的kqueue和Solaris的evport,还有类似libuv中windows系统使用IOCP.</p>
+<h2 id="3-持久化-AOF和RDB"><a href="#3-持久化-AOF和RDB" class="headerlink" title="3. 持久化:AOF和RDB"></a>3. 持久化:AOF和RDB</h2><p>Redis大多数的使用场景在于内存缓存, 提高后端的相应速度.Redis是一款高性能内存数据库,但是如果Redis本身只用内存,便会存在一个不可忽视的问题,一旦服务宕机,内存中的数据将全部丢失.</p>
+<p>为了避免从后端load到内存的网络压力和处理速度,Redis自身也实现了一套缓存逻辑.Redis 的持久化主要有两大机制，即 AOF（Append Only File）日志和 RDB 快照。</p>
+<h3 id="AOF-Append-Only-File"><a href="#AOF-Append-Only-File" class="headerlink" title="AOF(Append Only File)"></a>AOF(Append Only File)</h3><p>不同于数据库的”写前”日志(Write Ahead Log,WAL),Redis的AOF是”写后”日志,Redis先执行命令把数据写到内存,然后才会记录日志.</p>
+<p>为什么Redis要在写后才记录日志呢?</p>
+<ul>
+<li>避免记录错误命令</li>
+<li>不会阻塞当前操作</li>
+</ul>
+<p>数据库的Redo log记录的是命令修改后的数据,而AOF记录的是Redis收到的每一条命令.</p>
+<p>因为先写内存后记录日志的设计,Redis AOF的风险也就在于写完内存之后还没记录日志就宕机,会造成命令和数据丢失,</p>
+<p>如果Redis是缓存的话还能从后端数据库重新load这期间的数据,但是如果是直接控制数据库,就无法恢复了,而且Redis虽然不会阻塞当前命令,但是会阻塞下一条命令(因为AOF也是由主线程完成的)</p>
+<p>为了让AOF写入变得可控,Redis提供了三种AOF写回策略,即 appendfsync配置项的三个可选值.</p>
+<ul>
+<li>Always: 同步写回,每条命令执行完,立马同步写回磁盘</li>
+<li>EverySec: 每秒写回,每个写命令执行完，只是先把日志写到 AOF 文件的内存缓冲区，每隔一秒把缓冲区中的内容写入磁盘</li>
+<li>No，操作系统控制的写回：每个写命令执行完，只是先把日志写到 AOF 文件的内存缓冲区，由操作系统决定何时将缓冲区内容写回磁盘。</li>
+</ul>
+<p>与全局哈希表类似,AOF日志也有两份,正在使用的AOF由主线程写入,另一份由bgrewriteaof子线程来完成.</p>
+<p>为什么要有另一份重写日志呢?</p>
+<ul>
+<li>重写日志会做操作合并,解决日志太大的问题(同一个key多次set只保留最终的值)</li>
+<li>提高容错性.也可用作宕机恢复</li>
+</ul>
+<h3 id="RDB-Redis-Database"><a href="#RDB-Redis-Database" class="headerlink" title="RDB(Redis Database)"></a>RDB(Redis Database)</h3><p>与AOF不同的是RDB记录的是某一时刻的数据,而不是操作.所以在做Redis宕机恢复的时候可以直接将RDB的数据读入内存,就能快速恢复</p>
+<p>RDB的保存的命令分别喂save和bgsave, 二者的区别是save在主线程中执行,而bgsave为专门用于生成RDB的子线程执行,bgsave是Redis保存快照的默认配置.</p>
+<p>快照保存的是瞬间数据,为了不影响主线程正常工作(快照时不暂停),且不被主线程的修改影响(快照生成期间的改动不录入),Redis会借助操作系统提供的写时复制(Copy-On-Write,COW)技术,子线程由主线程fork生成,bgsave运行后读取主线程内存数据,如果此时主线程修改内存数据,这块数据就会复制一份,主线程修改复制处的数据,等到读取结束后再同步回去.</p>
+<h4 id="RDB越多越好吗"><a href="#RDB越多越好吗" class="headerlink" title="RDB越多越好吗?"></a>RDB越多越好吗?</h4><p>理论上来说,快照越频繁,越能减少数据丢失的概率,但是快照间隔时间过短,也会带来两方面的压力:</p>
+<ul>
+<li>磁盘被频繁写入</li>
+<li>bgsave线程出自主线程,过多fork会阻塞主线程.</li>
+</ul>
+<p>有没有办法只做增量快照呢?</p>
+<p>增量快照需要有大量元数据记录两次快照期间有哪些key有变动,如果有1万个key被修改,就要有1w条记录,对于内存本就宝贵的redis来说有些得不偿失.</p>
+<p>Redis 4.0提出了RDB + AOF混用的方式,也就是RDB周期执行,在周期期间的变动使用AOF记录,这种方案不仅避免了AOF过大,还允许RDB不用太频繁.</p>
+<h2 id="4-数据同步"><a href="#4-数据同步" class="headerlink" title="4. 数据同步"></a>4. 数据同步</h2><p>一个优秀的分布式组件的高可用性保障除了保证数据少丢失外(Redis使用AOF+RDB实现),还要有某种机制保证服务尽量少中断.</p>
+<p>Redis保证服务的机制是:</p>
+<p>Redis提供了主从库模式,为了保证主从库数据一致,采用的是<strong>读写分离</strong>的方式.</p>
+<p>读: 主从库都可以读</p>
+<p>写: 首先到主库执行,再由主库将操作同步给从库.</p>
+<h4 id="如何给某个redis加从库"><a href="#如何给某个redis加从库" class="headerlink" title="如何给某个redis加从库?"></a>如何给某个redis加从库?</h4><p>例如，现在有实例 1（ip：172.16.19.3）和实例 2（ip：172.16.19.5），我们在实例 2 上执行以下这个命令后，实例 2 就变成了实例 1 的从库，并从实例 1 上复制数据：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">replicaof  172.16.19.3  6379</span><br></pre></td></tr></table></figure>
+
+<h3 id="主从库的同步过程"><a href="#主从库的同步过程" class="headerlink" title="主从库的同步过程:"></a>主从库的同步过程:</h3><p>Redis主从同步分为以下几步,</p>
+<ol>
+<li>从库给主库发送psync命令,请求与主库同步数据.请求参数{runID : ?,offset: -1}(由于第一次同步不知道主库runID,所以设为”?”,offset表示复制进度,第一次置为-1)</li>
+<li>主库回复FULLRESYNC命令,表示第一次采用全量复制,参数{runID:{主库runID},offset:当前复制进度}</li>
+<li>主库将所有数据进行快照RDB,发送RDB文件至从库</li>
+<li>从库接受到RDB文件,清空自身数据并加载RDB文件到内存</li>
+<li>在RDB同步期间,主库不会中断服务,并且用replication buffer记录RDB文件至最新的所有写操作.</li>
+<li>把步骤5中的replication buffer操作发给从库,从库执行这些操作.</li>
+</ol>
+<h4 id="如果有多个从库-主库压力太大怎么办"><a href="#如果有多个从库-主库压力太大怎么办" class="headerlink" title="如果有多个从库,主库压力太大怎么办?"></a>如果有多个从库,主库压力太大怎么办?</h4><p>上述同步过程可以看出来同步期间主库需要完成两个耗时的操作: 生成和传输RDB文件.如果从库数量过多,会让主库忙于fork子进程生成bgsave.这个时候就可以采用”主-从-从”的模式了:比如A是主库,B和C是A的从库,D和E是B的从库.</p>
+<h4 id="主从同步期间网络中断了怎么办"><a href="#主从同步期间网络中断了怎么办" class="headerlink" title="主从同步期间网络中断了怎么办?"></a>主从同步期间网络中断了怎么办?</h4><p>Redis 2.8之前如果网络中断需要重新同步,Redis 2.8实现了增量同步, 只用同步网络断开期间主库的变更.</p>
+<p>那么它是如何实现的呢?</p>
+<p>主库在同步期间维护了一个replication buffer用于RDB生成期间的增量变化,照这个思路,主库同样维护了一个repl_backlog_buffer的环形缓冲区,在网络断开期间收到的命令会写入replication buffer,也会写入repl_backlog_buffer缓冲区.</p>
+<p>repl_backlog_buffer这个缓冲区除了主库会记录当前写入的位置(master_repl_offset),从库也会写入自己读到的位置(slave_repl_offset),连接恢复后从库通过psync命令同步断开期间的命令直到这两个偏移量相等.</p>
+<h3 id="哨兵机制"><a href="#哨兵机制" class="headerlink" title="哨兵机制"></a>哨兵机制</h3><p>在这个设计中主库的角色至关重要,从库看起来只是为读操作提供了高可用的备选,那如果主库挂了呢?</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta">文章作者: </span><span class="post-copyright-info"><a href="mailto:undefined">din1vin</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta">文章链接: </span><span class="post-copyright-info"><a href="http://example.com/2022/02/22/Redis%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF/">http://example.com/2022/02/22/Redis%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta">版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="http://example.com" target="_blank">din1vin's Blog</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/Redis/">Redis</a></div><div class="post_share"><div class="social-share" data-image="https://i.loli.net/2020/05/01/gkihqEjXxJ5UZ1C.jpg" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/social-share.js/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/social-share.js/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><div class="next-post pull-full"><a href="/2022/02/15/spark-2-%E8%AF%B4%E9%80%8FSQL-join/"><img class="next-cover" src="https://i.loli.net/2020/05/01/gkihqEjXxJ5UZ1C.jpg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">spark(2): 对比各种join姿势</div></div></a></div></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="http://inews.gtimg.com/newsapp_bt/0/13810887076/1000" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">din1vin</div><div class="author-info__description">bug探索工程师,低并发研究员</div></div><div class="card-info-data"><div class="card-info-data-item is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">20</div></a></div><div class="card-info-data-item is-center"><a href="/tags/"><div class="headline">标签</div><div class="length-num">12</div></a></div><div class="card-info-data-item is-center"><a href="/categories/"><div class="headline">分类</div><div class="length-num">11</div></a></div></div><a class="button--animated" id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/din1vin"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons is-center"><a class="social-icon" href="https://github.com/din1vin" target="_blank" title="Github"><i class="fab fa-github"></i></a><a class="social-icon" href="/dinl_vin@163.com" target="_blank" title="Email"><i class="fas fa-envelope"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn card-announcement-animation"></i><span>公告</span></div><div class="announcement_content">再好的文档也不会帮你敲一行代码!</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84"><span class="toc-number">1.</span> <span class="toc-text">1. 数据结构</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#Redis%E9%83%BD%E6%94%AF%E6%8C%81%E5%93%AA%E4%BA%9B%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E5%91%A2"><span class="toc-number">1.0.1.</span> <span class="toc-text">Redis都支持哪些数据结构呢?</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Redis%E5%A6%82%E4%BD%95%E4%BF%9D%E5%AD%98%E6%95%B0%E6%8D%AE%E5%91%A2"><span class="toc-number">1.0.2.</span> <span class="toc-text">Redis如何保存数据呢?</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E5%93%88%E5%B8%8C%E8%A1%A8%E7%9A%84%E6%93%8D%E4%BD%9C%E4%BC%9A%E5%8F%98%E6%85%A2"><span class="toc-number">1.0.3.</span> <span class="toc-text">为什么哈希表的操作会变慢</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%90%84%E7%A7%8D%E6%93%8D%E4%BD%9C%E7%9A%84%E5%B9%B3%E5%9D%87%E6%97%B6%E9%97%B4%E5%A4%8D%E6%9D%82%E5%BA%A6"><span class="toc-number">1.0.4.</span> <span class="toc-text">各种操作的平均时间复杂度</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-IO%E6%A8%A1%E5%9E%8B"><span class="toc-number">2.</span> <span class="toc-text">2. IO模型</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-%E6%8C%81%E4%B9%85%E5%8C%96-AOF%E5%92%8CRDB"><span class="toc-number">3.</span> <span class="toc-text">3. 持久化:AOF和RDB</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#AOF-Append-Only-File"><span class="toc-number">3.1.</span> <span class="toc-text">AOF(Append Only File)</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#RDB-Redis-Database"><span class="toc-number">3.2.</span> <span class="toc-text">RDB(Redis Database)</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#RDB%E8%B6%8A%E5%A4%9A%E8%B6%8A%E5%A5%BD%E5%90%97"><span class="toc-number">3.2.1.</span> <span class="toc-text">RDB越多越好吗?</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-%E6%95%B0%E6%8D%AE%E5%90%8C%E6%AD%A5"><span class="toc-number">4.</span> <span class="toc-text">4. 数据同步</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%A6%82%E4%BD%95%E7%BB%99%E6%9F%90%E4%B8%AAredis%E5%8A%A0%E4%BB%8E%E5%BA%93"><span class="toc-number">4.0.1.</span> <span class="toc-text">如何给某个redis加从库?</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%BB%E4%BB%8E%E5%BA%93%E7%9A%84%E5%90%8C%E6%AD%A5%E8%BF%87%E7%A8%8B"><span class="toc-number">4.1.</span> <span class="toc-text">主从库的同步过程:</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%A6%82%E6%9E%9C%E6%9C%89%E5%A4%9A%E4%B8%AA%E4%BB%8E%E5%BA%93-%E4%B8%BB%E5%BA%93%E5%8E%8B%E5%8A%9B%E5%A4%AA%E5%A4%A7%E6%80%8E%E4%B9%88%E5%8A%9E"><span class="toc-number">4.1.1.</span> <span class="toc-text">如果有多个从库,主库压力太大怎么办?</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%B8%BB%E4%BB%8E%E5%90%8C%E6%AD%A5%E6%9C%9F%E9%97%B4%E7%BD%91%E7%BB%9C%E4%B8%AD%E6%96%AD%E4%BA%86%E6%80%8E%E4%B9%88%E5%8A%9E"><span class="toc-number">4.1.2.</span> <span class="toc-text">主从同步期间网络中断了怎么办?</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%93%A8%E5%85%B5%E6%9C%BA%E5%88%B6"><span class="toc-number">4.2.</span> <span class="toc-text">哨兵机制</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2022/02/22/Redis%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF/" title="Redis核心技术">Redis核心技术</a><time datetime="2022-02-22T01:40:32.000Z" title="发表于 2022-02-22 09:40:32">2022-02-22</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2022/02/15/spark-2-%E8%AF%B4%E9%80%8FSQL-join/" title="spark(2): 对比各种join姿势">spark(2): 对比各种join姿势</a><time datetime="2022-02-15T02:45:11.000Z" title="发表于 2022-02-15 10:45:11">2022-02-15</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2021/12/29/zookeeper-%E5%A4%A7%E6%95%B0%E6%8D%AE%E7%9A%84%E7%AE%A1%E7%90%86%E5%91%98/" title="ZooKeeper --大数据的管理员">ZooKeeper --大数据的管理员</a><time datetime="2021-12-29T10:04:17.000Z" title="发表于 2021-12-29 18:04:17">2021-12-29</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2021/12/24/kafka-%E5%BC%82%E5%B8%B8%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6/" title="kafka 异常知其所以然">kafka 异常知其所以然</a><time datetime="2021-12-24T03:43:25.000Z" title="发表于 2021-12-24 11:43:25">2021-12-24</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2021/12/23/Hbase-%E5%9F%BA%E7%A1%80/" title="Hbase 基础">Hbase 基础</a><time datetime="2021-12-23T02:20:54.000Z" title="发表于 2021-12-23 10:20:54">2021-12-23</time></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2020 - 2022 By din1vin</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><i class="fas fa-arrow-up"></i></button></div></div><div id="local-search"><div class="search-dialog"><div class="search-dialog__title" id="local-search-title">本地搜索</div><div id="local-input-panel"><div id="local-search-input"><div class="local-search-box"><input class="local-search-box--input" placeholder="搜索文章" type="text"/></div></div></div><hr/><div id="local-search-results"></div><span class="search-close-button"><i class="fas fa-times"></i></span></div><div id="search-mask"></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="/js/search/local-search.js"></script><div class="js-pjax"></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div><!-- hexo injector body_end start -->
+  <script data-pjax src="https://cdn.jsdelivr.net/gh/Zfour/hexo-github-calendar@1.21/hexo_githubcalendar.js"></script>
+  <script data-pjax>
+        function GithubCalendarConfig(){
+            var git_githubapiurl ="https://python-github-calendar-api.vercel.app/api?din1vin";
+            var git_color =['#ebedf0', '#fdcdec', '#fc9bd9', '#fa6ac5', '#f838b2', '#f5089f', '#c4067e', '#92055e', '#540336', '#48022f', '#30021f'];
+            var git_user ="din1vin";
+            var parent_div_git = document.getElementById('recent-posts');
+            var git_div_html = '<div class="recent-post-item" style="width:100%;height:auto;padding:10px;"><div id="github_loading" style="width:10%;height:100%;margin:0 auto;display: block"><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"  viewBox="0 0 50 50" style="enable-background:new 0 0 50 50" xml:space="preserve"><path fill="#d0d0d0" d="M25.251,6.461c-10.318,0-18.683,8.365-18.683,18.683h4.068c0-8.071,6.543-14.615,14.615-14.615V6.461z" transform="rotate(275.098 25 25)"><animateTransform attributeType="xml" attributeName="transform" type="rotate" from="0 25 25" to="360 25 25" dur="0.6s" repeatCount="indefinite"></animateTransform></path></svg></div><div id="github_container"></div></div>';
+            if(parent_div_git && location.pathname =='/about/'){
+                console.log('已挂载github calendar')
+                // parent_div_git.innerHTML=git_div_html+parent_div_git.innerHTML // 无报错，但不影响使用(支持pjax跳转)
+                parent_div_git.insertAdjacentHTML("afterbegin",git_div_html) // 有报错，但不影响使用(支持pjax跳转)
+            };
+            GithubCalendar(git_githubapiurl,git_color,git_user)
+        }
+        if(document.getElementById('recent-posts')){
+            GithubCalendarConfig()
+        }
+    </script>
+    <style>#github_container{min-height:280px}@media screen and (max-width:650px) {#github_container{background-image:;min-height:0px}}</style>
+    <style></style><!-- hexo injector body_end end --></body></html>
